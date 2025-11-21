@@ -6,14 +6,15 @@
   version = "0.1.0"
 
 [tool.poetry.scripts]
-  ttr = "ttr.ttr:main"
+  ttr = "ttr.src.ttr:main"
 
 [build-system]
   build-backend = "poetry.core.masonry.api"
   requires = ["poetry-core"]
 
 [tool.poetry.dependencies]
-  deode = {git = "git@github.com:destination-earth-digital-twins/Deode-Workflow.git", tag = "v0.22.0"}
+  deode = {git = "git@github.com:uandrae/Deode-Prototype.git", branch = "release/v0.23.0"}
+  #deode = {git = "git@github.com:destination-earth-digital-twins/Deode-Workflow.git", tag = "v0.22.0"}
   dicttoxml = "^1.0.0"
   python = ">=3.10,<3.13"
 
@@ -66,6 +67,7 @@
 
 [tool.ruff.lint]
   ignore = [
+    "T201",
     "C901",
     "D105",
     "EXE001",

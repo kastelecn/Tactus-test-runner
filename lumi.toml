@@ -1,33 +1,16 @@
 [general]
   dry = false
   selection = [
-    "cy49t2_alaro",
-    "cy49t2_alaro_target",
-    "cy49t2_alaro_eps",
-    "cy49t2_arome",
-    "cy49t2_arome_dp",
-    "cy49t2_arome_eps",
-    "cy49t2_arome_flooding",
-    "cy49t2_arome_target",
-    "cy49t2_arome_use_offline",
-    "cy49t2_harmonie_arome",
-    "cy49t2_harmonie_arome_airquality",
-    "cy49t2_harmonie_arome_dp",
-    "cy49t2_harmonie_arome_eps",
-    "cy49t2_harmonie_arome_target",
     "alaro",
     "arome",
     "harmonie_arome",
-    "cy49t2_alaro_operational_tomorrow",
-    "cy49t2_arome_large_domain_operational",
-    "cy49t2_harmonie_arome_large_domain_use_offline",
   ]
-  tag = "v0_23_0_"
+  tag = "@USER@_v0_23_0_"
   # Uncomment this for intel and gnu runs
-  subtags = [
-    {intel_ = []},
-    {gnu_ = ["deode/data/config_files/modifications/submission/atos_bologna_gnu.toml"]},
-  ]
+  #subtags = [
+    #{intel_ = []},
+    #{gnu_ = ["deode/data/config_files/modifications/submission/atos_bologna_gnu.toml"]},
+  #]
 
 # General config
 # dry means just produce the config files, can be achived by adding "-d" on command line as well
@@ -192,38 +175,39 @@
 
 # Global modifications
 [modifs.archiving.FDB.fdb.fpgrib_files]
-  active = false
-
-[modifs.cleaning.PostMortem.ecf_files]
-  active = false
+  active = true
 
 [modifs.fdb.expver_restrictions]
-  ulfs = ["snh"]
+  0098 = ["snh02", "lrb_465000527_efdev"]
+  ulfs = ["snh", "andraeul"]
 
 [modifs.fdb.grib_set]
   expver = "ulfs"
 
+[modifs.boundaries]
+  max_interpolation_tasks = -1
+
+[modifs.cleaning.PostMortem.ecf_files]
+  active = false
+
 [modifs.general.times]
   # counter for starting days, this is to test different days
-  end = "-P{i}D"
-  start = "-P{i}D"
-
-[modifs.macros.select.release_test]
-  os_macros = ["PERM"]
+  end = "-P1D"
+  start = "-P1D"
 
 [modifs.scheduler.ecfvars]
   case_prefix = "{tag}{subtag}"
-  ecf_files = "@PERM@/deode_ecflow/ecf_files"
-  ecf_files_remotely = "@PERM@/deode_ecflow/ecf_files"
-  ecf_home = "@PERM@/deode_ecflow/jobout"
-  ecf_jobout = "@PERM@/deode_ecflow/jobout"
-  ecf_out = "@PERM@/deode_ecflow/jobout"
 
 [modifs.submission]
-  max_ecf_tasks = 10
+  max_ecf_tasks = 25
+
+[modifs.submission.types.serial.BATCH]
+  MEM = "#SBATCH --mem=0GB"
+  PARTITION = "#SBATCH --partition=standard"
 
 [modifs.suite_control]
   do_archiving = false
+  max_static_data_tasks = -1
 
 [modifs.system]
   # Picks up the case name and domain from the host run

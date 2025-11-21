@@ -1,9 +1,11 @@
+"""Tactus-test-runner main driver."""
 import argparse
 import contextlib
 import copy
 import glob
 import os
 import subprocess
+import sys
 
 import tomli
 import tomlkit
@@ -12,9 +14,15 @@ from deode.general_utils import merge_dicts
 
 
 class TestCases:
+    """Class to orchestrate the tests."""
+
     def __init__(self, args):
-        # with open(config_file, "r", encoding="utf-8") as f:
-        # definitions = json.load(f)
+        """Construct the object.
+
+        Args:
+            args (argsparse objectl): Command line arguments
+
+        """
         with open(args.config_file, "rb") as f:
             definitions = tomli.load(f)
 
@@ -27,6 +35,7 @@ class TestCases:
         if len(self.selection) == 0:
             self.selection = list(self.cases)
 
+        self.tag = definitions["general"].get("tag", self.get_tactus_version())
         # Handle subtags and update selection accordingly
         subtags = definitions["general"].get("subtags", [])
         if len(subtags) > 0:
@@ -50,7 +59,6 @@ class TestCases:
             self.selection = subtag_selection
 
         self.dry = args.dry if args.dry else definitions["general"].get("dry", True)
-        self.tag = definitions["general"].get("tag", "")
         self.modifs = definitions["modifs"]
 
         with contextlib.suppress(KeyError):
@@ -62,18 +70,41 @@ class TestCases:
         print("Using config file:", args.config_file)
         print("         test tag:", self.tag)
         # Actions
-        if args.list:
-            print("\nAvailable cases:")
-            for x in self.cases:
-                print(f'    "{x}",')
-            print("\nSelected cases:")
-            case_print = self.cases if len(self.selection) == 0 else self.selection
-            for x in case_print:
-                print(f'    "{x}",')
-                if self.verbose:
-                    print(f'      "{self.cases[x]}",')
+
+    def list(self):
+        """List configurations."""
+        print("\nAvailable cases:")
+        for x in self.cases:
+            print(f'    "{x}",')
+        print("\nSelected cases:")
+        case_print = self.cases if len(self.selection) == 0 else self.selection
+        for x in case_print:
+            print(f'    "{x}",')
+            if self.verbose:
+                print(f'      "{self.cases[x]}",')
+
+    def get_tactus_version(self):
+        """Get tactus version info."""
+        with open("pyproject.toml", "rb") as f:
+            pyproject = tomli.load(f)
+            deode_git = pyproject["tool"]["poetry"]["dependencies"]["deode"]
+        if "tag" in deode_git:
+            tag = deode_git["tag"]
+        elif "branch" in deode_git:
+            tag = deode_git["branch"]
+        else:
+            tag = "Unknown"
+
+        tag = tag.replace("/", "_").replace(".", "_")
+        return tag
 
     def expand_tests(self, defs):
+        """Expand test arguments.
+
+        Arguments:
+           defs: (dict): Test definitions
+
+        """
         prefix_map = {
             "intel": {"sp": "-sp", "dp": ""},
             "gnu": {"sp": "-sp-gnu", "dp": "-gnu"},
@@ -114,26 +145,38 @@ class TestCases:
                     }
 
     def prepare(self):
-        host_cases = []
-        for case in self.selection:
-            try:
-                if "host" in self.cases[case]:
-                    host_cases.append(self.cases[case]["host"])
-            except KeyError:
-                raise ValueError(
-                    f"{case} is not an available case\n Avaiable cases are {list(self.cases)}"
-                )
+        """Prepare the host cases.
+
+        Raises:
+            KeyError: If case is not found
+
+        """
+        try:
+            host_cases = [
+                self.cases[case]["host"]
+                for case in self.selection
+                if "host" in self.cases[case]
+            ]
+        except KeyError as err:
+            raise KeyError(
+                f"The case is not an available\n"
+                f" Avaiable cases are {list(self.cases)}"
+            ) from err
+
         return host_cases
 
     def create(self, host_cases=None):
+        """Create the tests.
+
+        Arguments:
+            host_cases (list, optional): List of host cases
+
+        """
         os.makedirs(self.test_dir, exist_ok=True)
         print(f"Create config files in {self.test_dir}")
 
         self.cmds = {}
-        if host_cases is None:
-            cases = self.selection
-        else:
-            cases = host_cases
+        cases = self.selection if host_cases is None else host_cases
         assigned = {}
         print("cases:", cases)
         for i, (case, item) in enumerate(self.cases.items()):
@@ -153,10 +196,10 @@ class TestCases:
 
             base = item["base"] if "base" in item else case
             subtag = item["subtag"] if "subtag" in item else ""
-            extra = [x for x in self.extra]
+            extra = list(self.extra)
             _extra = item["extra"] if "extra" in item else []
             for e in _extra:
-                extra.append(e)
+                extra.append(e)  # noqa PERF402
             suffix = item["suffix"] if "suffix" in item else ""
             hostname = item["hostname"] if "hostname" in item else ""
             hostdomain = item["hostdomain"] if "hostdomain" in item else ""
@@ -181,12 +224,25 @@ class TestCases:
         tag="",
         subtag="",
         base=None,
-        extra=[],
+        extra=None,
         host="",
-        suffix="",
         hostname="",
         hostdomain="",
     ):
+        """Construct the final command.
+
+        Arguments:
+           i (x): x
+           case (x): x
+           tag (x): x
+           subtag (x): x
+           base (x): x
+           extra (x): x
+           host (x): x
+           hostname (x): x
+           hostdomain (x): x
+
+        """
         if base is None:
             base = case
 
@@ -196,8 +252,9 @@ class TestCases:
             f"?{GeneralConstants.PACKAGE_DIRECTORY}/data/config_files/configurations/{base}",
         ]
 
-        for x in extra:
-            cmd.append(x)
+        if extra is not None:
+            for x in extra:
+                cmd.append(x)  # noqa PERF402
 
         tail = [
             self.modif(
@@ -212,13 +269,22 @@ class TestCases:
             self.test_dir,
         ]
         for x in tail:
-            cmd.append(x)
+            cmd.append(x)  # noqa PERF402
 
         return cmd
 
-    def modif(
-        self, i, case, outfile=None, host="", hostname="", hostdomain="", subtag=""
-    ):
+    def modif(self, i, case, outfile=None, hostname="", hostdomain="", subtag=""):
+        """Modify.
+
+        Arguments:
+            i (x): x
+            case (x): x
+            outfile (x): x
+            hostname (x): x
+            hostdomain (x): x
+            subtag (x): x
+
+        """
         if outfile is None:
             outfile = f"{self.test_dir}/modifs_{case}.toml"
 
@@ -229,15 +295,23 @@ class TestCases:
                 i=i, tag=self.tag, hostname=hostname, hostdomain=hostdomain, subtag=subtag
             )
             x = tomlkit.parse(x)
-        except KeyError:
-            raise KeyError("Missing substition in modif section")
+        except KeyError as err:
+            raise KeyError("Missing substition in modif section") from err
 
         with open(outfile, mode="w", encoding="utf8") as fh:
             tomlkit.dump(x, fh)
 
         return outfile
 
-    def configure(self, cmds=[]):
+    def configure(self, cmds=None):
+        """Configure tests.
+
+        Arguments:
+            cmds (list, optional): List of commands (str)
+
+        """
+        if cmds is None:
+            cmds = []
         cases = {}
         for case, cmd in self.cmds.items():
             print("Configure case", case, "with\n")
@@ -246,7 +320,7 @@ class TestCases:
             print(" ".join(cmd))
             try:
                 result = subprocess.run(
-                    cmd,
+                    cmd,  # noqa S603
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
@@ -281,6 +355,7 @@ class TestCases:
         return cases
 
     def get_binaries(self):
+        """Get the correct binaries."""
         basedir = os.getcwd()
         ial_hash = self.definitions["ial"]["ial_hash"]
         build_tar_path = self.definitions["ial"]["build_tar_path"]
@@ -296,23 +371,28 @@ class TestCases:
             os.makedirs(bindir, exist_ok=True)
             os.chdir(bindir)
             print(f"Untar {f} into {bindir}")
-            os.system(f"tar xf {f}")
+            os.system(f"tar xf {f}")  # noqa S605
 
         os.chdir(basedir)
         print("All binaries copied. Rerun without '-p' to launch tests")
 
 
 def execute(t):
+    """Execute the stuff.
+
+    Arguments:
+        t (x): x
+
+    """
     # Check dependencies
     host_cases = t.prepare()
     t.create(host_cases)
     hostnames = t.configure()
     for case, item in t.cases.items():
-        if "host" in item:
-            if item["host"] in hostnames:
-                print(item["host"], hostnames[item["host"]])
-                t.cases[case]["hostname"] = hostnames[item["host"]]["config_name"]
-                t.cases[case]["hostdomain"] = hostnames[item["host"]]["domain_name"]
+        if "host" in item and item["host"] in hostnames:
+            print(item["host"], hostnames[item["host"]])
+            t.cases[case]["hostname"] = hostnames[item["host"]]["config_name"]
+            t.cases[case]["hostdomain"] = hostnames[item["host"]]["domain_name"]
 
     # Create and run
     t.create()
@@ -323,7 +403,8 @@ def execute(t):
     t.configure(cmd)
 
 
-def main(argv=None):
+def main():
+    """Main routine for the test runner."""
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument(
         "--list",
@@ -346,8 +427,7 @@ def main(argv=None):
         "-c",
         dest="config_file",
         help="Used config file",
-        default="test_cases.toml",
-        required=False,
+        required=True,
     )
     parser.add_argument(
         "--verbose",
@@ -362,19 +442,21 @@ def main(argv=None):
         "-p",
         action="store_true",
         default=False,
-        help="Preare binaries from a IAL hash",
+        help="Preare binaries from an IAL hash",
         required=False,
     )
 
     args = parser.parse_args()
 
     t = TestCases(args=args)
+    sys.exit()
 
     if args.prepare_binaries:
         t.get_binaries()
+    elif args.list:
+        t.list()
     else:
-        if not args.list:
-            execute(t)
+        execute(t)
 
 
 if __name__ == "__main__":
