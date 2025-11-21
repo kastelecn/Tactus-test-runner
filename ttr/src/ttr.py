@@ -60,7 +60,7 @@ class TestCases:
                     self.cases[subtag] = x
             self.selection = subtag_selection
 
-        self.dry = args.dry if args.dry else definitions["general"].get("dry", True)
+        self.dry = args.dry if args.dry else definitions["general"].get("dry", False)
         self.modifs = definitions["modifs"]
 
         if args.config_file is not None:
@@ -176,12 +176,17 @@ class TestCases:
 
         """
         os.makedirs(self.test_dir, exist_ok=True)
-        print(f"Create config files in {self.test_dir}")
+        if host_cases is None:
+            cases = self.selection
+            label = ""
+        else:
+            label = "host "
+            cases = host_cases
+
+        print(f"Create {label}config files in {self.test_dir}")
 
         self.cmds = {}
-        cases = self.selection if host_cases is None else host_cases
         assigned = {}
-        print("cases:", cases)
         for i, (case, item) in enumerate(self.cases.items()):
             assigned[case] = i + 1
 
@@ -317,7 +322,8 @@ class TestCases:
             print("Configure case", case, "with\n")
             for c in cmds:
                 cmd.append(c)
-            print(" ".join(cmd))
+            cmd_txt = " ".join(cmd)
+            print(f"Run:\n\n{cmd_txt}\n\n")
             try:
                 result = subprocess.run(
                     cmd,  # noqa S603
@@ -327,14 +333,15 @@ class TestCases:
                     check=True,
                 )
             except (subprocess.CalledProcessError, KeyError) as e:
-                print(result.stderr)
-                print(result)
                 print("Command failed!")
                 print(f"Return code: {result.returncode}")
-                print(f"Command: {result.cmd}")
                 print(f"stdout: {result.stdout}")
                 print(f"stderr: {result.stderr}")
-                raise RuntimeError from e
+                try:
+                    print(f"Command: {result.cmd}")
+                except:
+                    pass
+                raise RuntimeError(f"Error in \n\n{cmd_txt}\n\n") from e
 
             print(result.stderr)
             lines = result.stderr.split("INFO")
@@ -359,13 +366,23 @@ class TestCases:
         basedir = os.getcwd()
         ial_hash = self.definitions["ial"]["ial_hash"]
         build_tar_path = self.definitions["ial"]["build_tar_path"]
+        bindir = self.definitions["ial"]["bindir"].replace("@USER@", os.environ["USER"])
+
         files = glob.glob(f"{build_tar_path}/*{ial_hash}*.tar")
         for f in files:
             ff = os.path.basename(f).replace(".tar", "")
+            compiler = "intel"
+            precision = "R64"
+            if "-sp-" in ff:
+                precision = "R32"
+            if "-gnu-" in ff:
+                compiler = "gnu"
             cptag = ff.replace(ial_hash, "").replace("ial", "")
             bindir = (
-                self.bindir.replace("@CPTAG@", cptag)
-                .replace("-@IAL_HASH@", ial_hash)
+                bindir.replace("@CPTAG@", cptag)
+                .replace("@IAL_HASH@", ial_hash)
+                .replace("@COMPILER@", compiler)
+                .replace("@PRECISION@", precision)
                 .replace("/bin", "")
             )
             os.makedirs(bindir, exist_ok=True)
@@ -390,7 +407,6 @@ def execute(t):
     hostnames = t.configure()
     for case, item in t.cases.items():
         if "host" in item and item["host"] in hostnames:
-            print(item["host"], hostnames[item["host"]])
             t.cases[case]["hostname"] = hostnames[item["host"]]["config_name"]
             t.cases[case]["hostdomain"] = hostnames[item["host"]]["domain_name"]
 
