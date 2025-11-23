@@ -1,0 +1,29 @@
+# Global modifications
+[modifs.archiving.FDB.fdb.fpgrib_files]
+  active = false
+
+[modifs.cleaning.PostMortem.ecf_files]
+  active = false
+
+[modifs.fdb.expver_restrictions]
+  test = ["snh02", "lrb_465000527_efdev"]
+  ulfs = ["snh", "andraeul"]
+
+[modifs.fdb.grib_set]
+  expver = "0098"
+
+[modifs.general.times]
+  # counter for starting days, this is to test different days
+  end = "-P{i}D"
+  start = "-P{i}D"
+
+[modifs.submission]
+  max_ecf_tasks = 10
+
+[modifs.suite_control]
+  do_archiving = false
+
+[modifs.system]
+  # Picks up the case name and domain from the host run
+  host_case = "{hostname}"
+  host_domain = "{hostdomain}"

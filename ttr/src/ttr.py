@@ -5,7 +5,6 @@ import copy
 import glob
 import os
 import subprocess
-import sys
 
 import tomli
 import tomlkit
@@ -27,6 +26,13 @@ class TestCases:
         if args.config_file is not None:
             with open(args.config_file, "rb") as f:
                 definitions = tomli.load(f)
+
+        if "include" in definitions:
+            for include_config in definitions["include"].values():
+                with open(f"config_files/{include_config}", "rb") as f:
+                    defs = tomli.load(f)
+                    for k, v in defs.items():
+                        definitions[k] = v
 
         self.verbose = args.verbose
         self.definitions = definitions
@@ -71,7 +77,7 @@ class TestCases:
         self.test_dir = definitions.get("test_dir", f"{self.tag}configs")
 
         print("Using config file:", args.config_file)
-        print("         test tag:", self.tag)
+        print(" tag:", self.tag)
         # Actions
 
     def list(self):
@@ -153,6 +159,8 @@ class TestCases:
         Raises:
             KeyError: If case is not found
 
+        Returns:
+            host_cases: List of host cases
         """
         try:
             host_cases = [
@@ -213,7 +221,6 @@ class TestCases:
             cmd = self.get_cmd(
                 j,
                 case,
-                self.tag,
                 subtag,
                 base,
                 extra=extra,
@@ -227,11 +234,9 @@ class TestCases:
         self,
         i,
         case,
-        tag="",
         subtag="",
         base=None,
         extra=None,
-        host="",
         hostname="",
         hostdomain="",
     ):
@@ -240,13 +245,14 @@ class TestCases:
         Arguments:
            i (x): x
            case (x): x
-           tag (x): x
            subtag (x): x
            base (x): x
            extra (x): x
-           host (x): x
            hostname (x): x
            hostdomain (x): x
+
+        Returns:
+           cmd (list): List of commands
 
         """
         if base is None:
@@ -289,6 +295,10 @@ class TestCases:
             hostdomain (x): x
             subtag (x): x
 
+        Raises:
+            KeyError: For modif missing key
+        Returns:
+            outfile (str): Name of file written
         """
         if outfile is None:
             outfile = f"{self.test_dir}/modifs_{case}.toml"
@@ -314,6 +324,11 @@ class TestCases:
         Arguments:
             cmds (list, optional): List of commands (str)
 
+        Raises:
+            RunTimeErrors: For subcommand errors
+
+        Returns:
+            cases (dict): Dict of cases to run
         """
         if cmds is None:
             cmds = []
@@ -337,10 +352,6 @@ class TestCases:
                 print(f"Return code: {result.returncode}")
                 print(f"stdout: {result.stdout}")
                 print(f"stderr: {result.stderr}")
-                try:
-                    print(f"Command: {result.cmd}")
-                except:
-                    pass
                 raise RuntimeError(f"Error in \n\n{cmd_txt}\n\n") from e
 
             print(result.stderr)

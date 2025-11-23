@@ -41,13 +41,16 @@
     "deode/data/config_files/include/eps/eps_7members.toml",
     "deode/data/config_files/include/eps/alaro.toml",
   ]
-  start = 1
 
 [cases.cy49t2_alaro_eps.modifs.eps.general]
   members = "0:3"
 
 [cases.cy49t2_alaro_eps.modifs.general]
   case = "@CASE_PREFIX@@CYCLE@_@CSC@_@EVENT_TYPE@_@DOMAIN@_@YMD_START@_eps"
+
+[cases.cy49t2_alaro_eps.modifs.general.times]
+  end = "-P1D"
+  start = "-P1D"
 
 [cases.cy49t2_alaro_operational_tomorrow]
   base = "cy49t2_alaro"
@@ -81,7 +84,6 @@
     "deode/data/config_files/include/eps/eps_7members.toml",
     "deode/data/config_files/include/eps/arome.toml",
   ]
-  start = 1
 
 [cases.cy49t2_arome_eps.modifs.eps.general]
   members = "0:3"
@@ -89,19 +91,29 @@
 [cases.cy49t2_arome_eps.modifs.general]
   case = "@CASE_PREFIX@@CYCLE@_@CSC@_@EVENT_TYPE@_@DOMAIN@_@YMD_START@_eps"
 
+[cases.cy49t2_arome_eps.modifs.general.times]
+  end = "-P1D"
+  start = "-P1D"
+
 [cases.cy49t2_arome_flooding]
   base = "cy49t2_arome"
   extra = ["deode/data/config_files/modifications/event_type/flooding.toml"]
-  start = 1
+
+[cases.cy49t2_arome_flooding.modifs.general.times]
+  end = "-P1D"
+  start = "-P1D"
 
 [cases.cy49t2_arome_large_domain_operational]
   base = "arome"
   extra = ["deode/data/config_files/modifications/operational_settings.toml"]
-  start = 1
 
 [cases.cy49t2_arome_large_domain_operational.modifs.general]
   case = "@CASE_PREFIX@oper_@CSC@_@XDX@m_@DOMAIN@_@YMD_START@"
   event_type = "nwp"
+
+[cases.cy49t2_arome_large_domain_operational.modifs.general.times]
+  end = "-P1D"
+  start = "-P1D"
 
 [cases.cy49t2_arome_target]
   host = "cy49t2_arome_dp"
@@ -109,14 +121,16 @@
 [cases.cy49t2_arome_use_offline]
   base = "cy49t2_arome"
   extra = ["deode/data/config_files/modifications/use_surfex_offline_for_prep.toml"]
-  start = 1
+
+[cases.cy49t2_arome_use_offline.modifs.general.times]
+  end = "-P1D"
+  start = "-P1D"
 
 [cases.cy49t2_harmonie_arome]
 
 [cases.cy49t2_harmonie_arome_airquality]
   base = "cy49t2_harmonie_arome"
   extra = ["deode/data/config_files/modifications/event_type/airquality.toml"]
-  start = 3
 
 [cases.cy49t2_harmonie_arome_airquality.modifs.archiving.FDB.fdb.surfex_grib2]
   active = false
@@ -136,7 +150,6 @@
     "deode/data/config_files/include/eps/eps_7members.toml",
     "deode/data/config_files/include/eps/harmonie_arome.toml",
   ]
-  start = 2
 
 [cases.cy49t2_harmonie_arome_eps.modifs.eps.general]
   members = "0:3"
@@ -144,10 +157,17 @@
 [cases.cy49t2_harmonie_arome_eps.modifs.general]
   case = "@CASE_PREFIX@@CYCLE@_@CSC@_@EVENT_TYPE@_@DOMAIN@_@YMD_START@_eps"
 
+[cases.cy49t2_harmonie_arome_eps.modifs.general.times]
+  end = "-P2D"
+  start = "-P2D"
+
 [cases.cy49t2_harmonie_arome_large_domain_use_offline]
   base = "harmonie_arome"
   extra = ["deode/data/config_files/modifications/use_surfex_offline_for_prep.toml"]
-  start = 1
+
+[cases.cy49t2_harmonie_arome_large_domain_use_offline.modifs.general.times]
+  end = "-P1D"
+  start = "-P1D"
 
 [cases.cy49t2_harmonie_arome_target]
   host = "cy49t2_harmonie_arome_dp"
@@ -155,6 +175,7 @@
 [cases.cy49t2_harmonie_arome_use_offline]
   base = "cy49t2_harmonie_arome"
   extra = ["deode/data/config_files/modifications/use_surfex_offline_for_prep.toml"]
-  start = 1
 
-[cases.harmonie_arome]
+[cases.cy49t2_harmonie_arome_use_offline.modifs.general.times]
+  end = "-P1D"
+  start = "-P1D"

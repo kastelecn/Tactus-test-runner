@@ -1,0 +1,46 @@
+[general]
+  selection = [
+    "cy49t2_alaro",
+    "cy49t2_alaro_target",
+    "cy49t2_arome_dp",
+    "cy49t2_arome_target",
+    "cy49t2_harmonie_arome_dp",
+    "cy49t2_harmonie_arome_target",
+    "cy49t2_arome_large_domain_operational",
+    "cy49t2_alaro_operational_tomorrow",
+    "cy49t2_harmonie_arome_large_domain_use_offline",
+  ]
+  tag = "33d75b0_"
+  # Uncomment this for intel and gnu runs
+  subtags = [
+    {intel_ = []},
+    {gnu_ = ["deode/data/config_files/modifications/submission/atos_bologna_gnu.toml"]},
+  ]
+
+[ial]
+  bindir = "/scratch/@USER@/ial_binaries/@IAL_HASH@/@COMPILER@/@PRECISION@/bin"
+  build_tar_path = "/scratch/deployde330"
+  ial_hash = "33d75b06b0bf09a01246d1e14ffae42334399af6"
+
+[modifs.cleaning.PostMortem.ecf_files]
+  active = false
+
+[modifs.general.times]
+  # counter for starting days, this is to test different days
+  end = "-P{i}D"
+  start = "-P{i}D"
+
+[modifs.submission]
+  bindir = "/scratch/@USER@/ial_binaries/33d75b06b0bf09a01246d1e14ffae42334399af6/@COMPILER@/R64/bin"
+  max_ecf_tasks = 25
+
+[modifs.submission.task_exceptions.Forecast]
+  bindir = "/scratch/@USER@/ial_binaries/33d75b06b0bf09a01246d1e14ffae42334399af6/@COMPILER@/@PRECISION@/bin"
+
+[modifs.system]
+  # Picks up the case name and domain from the host run
+  host_case = "{hostname}"
+  host_domain = "{hostdomain}"
+
+[include]
+  cases = "config_files/case_definitions.toml"

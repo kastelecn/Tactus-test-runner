@@ -3,15 +3,16 @@
 
 [ial]
   active = true
-  ial_hash = "59dbd998dbe1a8cc6e4a0ad0d6621efc58424f08"
-  build_tar_path = "/scratch/deployde330"
   bindir = "/scratch/@USER@/ial_binaries/ial@CPTAG@-@IAL_HASH@/bin"
+  build_tar_path = "/scratch/deployde330"
+  ial_hash = "59dbd998dbe1a8cc6e4a0ad0d6621efc58424f08"
+
+[ial.tests.gnu]
+  dp = ["alaro", "arome", "harmonie_arome"]
 
 [ial.tests.intel]
-  sp = ["arome","harmonie_arome"]
-  dp = ["alaro","arome","harmonie_arome"]
-[ial.tests.gnu]
-  dp = ["alaro","arome","harmonie_arome"]
+  dp = ["alaro", "arome", "harmonie_arome"]
+  sp = ["arome", "harmonie_arome"]
 
 [modifs.general]
   case = "@CASE_PREFIX@@DOMAIN@_@YMD_START@"
@@ -30,12 +31,12 @@
   ecf_jobout = "@PERM@/deode_ecflow/jobout"
   ecf_out = "@PERM@/deode_ecflow/jobout"
 
+[modifs.submission]
+  max_ecf_tasks = 10
+
 [modifs.suite_control]
+  create_static_data = true
   do_archiving = false
   do_creategrib_static = false
   do_extractsqlite = false
   do_mergesqlite = false
-  create_static_data = true
-
-[modifs.submission]
-  max_ecf_tasks = 10
