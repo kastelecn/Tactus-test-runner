@@ -8,7 +8,7 @@ from pathlib import Path
 
 import tomli
 import tomlkit
-from deode.__main__ import deode as tactus_main
+from deode.__main__ import main as tactus_main
 from deode.config_parser import GeneralConstants
 from deode.general_utils import merge_dicts
 
@@ -37,17 +37,36 @@ class TestCases:
 
         self.verbose = args.verbose
         self.definitions = definitions
-        # Definitions
         self.cases = definitions.get("cases", {})
-        self.selection = definitions["general"].get("selection", [])
         self.extra = definitions["general"].get("extra", [])
-        if len(self.selection) == 0:
-            self.selection = list(self.cases)
-
         self.tag = definitions["general"].get("tag", self.get_tactus_version())
+        self.dry = args.dry if args.dry else definitions["general"].get("dry", False)
+        self.modifs = definitions["modifs"]
+        self.test_dir = definitions.get("test_dir", f"{self.tag}configs")
+        self.ial = definitions.get("ial", {})
+        self.selection = self.resolve_selection(definitions)
+
+        if args.config_file is not None:
+            with contextlib.suppress(KeyError):
+                if definitions["ial"].get("active", False):
+                    self.expand_tests(definitions)
+
+        print("Using config file:", args.config_file)
+        print(" tag:", self.tag)
+        # Actions
+
+    def resolve_selection(self, definitions):
+        """Resolve the selections.
+
+        Returns:
+            selection (list) : List of selected configurations
+        """
+
+        selection = definitions["general"].get("selection", list(self.cases))
+
         # Handle subtags and update selection accordingly
-        subtags = definitions["general"].get("subtags", [])
-        if len(subtags) > 0:
+        with contextlib.suppress(KeyError):
+            subtags = definitions["general"]["subtags"]
             subtag_selection = []
             for key in subtags:
                 tag, v = key.popitem()
@@ -65,21 +84,9 @@ class TestCases:
                         x["extra"].append(k)
                     subtag_selection.append(subtag)
                     self.cases[subtag] = x
-            self.selection = subtag_selection
+            selection = subtag_selection
 
-        self.dry = args.dry if args.dry else definitions["general"].get("dry", False)
-        self.modifs = definitions["modifs"]
-
-        if args.config_file is not None:
-            with contextlib.suppress(KeyError):
-                if definitions["ial"].get("active", False):
-                    self.expand_tests(definitions)
-
-        self.test_dir = definitions.get("test_dir", f"{self.tag}configs")
-
-        print("Using config file:", args.config_file)
-        print(" tag:", self.tag)
-        # Actions
+        return selection
 
     def list(self):
         """List configurations."""
@@ -346,9 +353,9 @@ class TestCases:
     def get_binaries(self):
         """Get the correct binaries."""
         basedir = os.getcwd()
-        ial_hash = self.definitions["ial"]["ial_hash"]
-        build_tar_path = self.definitions["ial"]["build_tar_path"]
-        _bindir = self.definitions["ial"]["bindir"].replace("@USER@", os.environ["USER"])
+        ial_hash = sel.ial["ial_hash"]
+        build_tar_path = sel.ial["build_tar_path"]
+        _bindir = sel.ial["bindir"].replace("@USER@", os.environ["USER"])
 
         files = glob.glob(f"{build_tar_path}/*{ial_hash}*.tar")
         for f in files:
