@@ -203,6 +203,7 @@ class TestCases:
 
         self.cmds = {}
         assigned = {}
+        ial_hash = self.ial.get("ial_hash", "")
         for i, (case, item) in enumerate(self.cases.items()):
             assigned[case] = i + 1
 
@@ -218,7 +219,6 @@ class TestCases:
                 extra.append(e)  # noqa PERF402
             hostname = item["hostname"] if "hostname" in item else ""
             hostdomain = item["hostdomain"] if "hostdomain" in item else ""
-            print("CASE   ->:",case)
             self.cmds[case] = self.get_cmd(
                 j,
                 case,
@@ -227,6 +227,7 @@ class TestCases:
                 extra=extra,
                 hostname=hostname,
                 hostdomain=hostdomain,
+                ial_hash=ial_hash,
             )
 
     def get_cmd(
@@ -238,6 +239,7 @@ class TestCases:
         extra=None,
         hostname="",
         hostdomain="",
+        ial_hash="",
     ):
         """Construct the final command.
 
@@ -273,6 +275,7 @@ class TestCases:
                 hostname=hostname,
                 hostdomain=hostdomain,
                 subtag=subtag,
+                ial_hash=ial_hash,
             ),
             "-o",
             self.test_dir,
@@ -282,7 +285,9 @@ class TestCases:
 
         return cmd
 
-    def modif(self, i, case, outfile=None, hostname="", hostdomain="", subtag=""):
+    def modif(
+        self, i, case, outfile=None, hostname="", hostdomain="", subtag="", ial_hash=""
+    ):
         """Modify.
 
         Arguments:
@@ -292,6 +297,7 @@ class TestCases:
             hostname (x): x
             hostdomain (x): x
             subtag (x): x
+            ial_hash (str): IAL_HASH
 
         Raises:
             KeyError: For modif missing key
@@ -305,7 +311,12 @@ class TestCases:
         modifs = merge_dicts(self.modifs, self.cases[case].get("modifs", {}), True)
         try:
             x = tomlkit.dumps(modifs).format(
-                i=i, tag=self.tag, hostname=hostname, hostdomain=hostdomain, subtag=subtag
+                i=i,
+                tag=self.tag,
+                hostname=hostname,
+                hostdomain=hostdomain,
+                subtag=subtag,
+                ial_hash=ial_hash,
             )
             x = tomlkit.parse(x)
         except KeyError as err:

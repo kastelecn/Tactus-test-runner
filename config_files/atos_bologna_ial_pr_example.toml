@@ -18,7 +18,7 @@
   ]
 
 [ial]
-  bindir = "/scratch/@USER@/ial_binaries/@IAL_HASH@/@COMPILER@/@PRECISION@/bin"
+  bindir = "/scratch/@USER@/ial_binaries/{ial_hash}/@COMPILER@/@PRECISION@/bin"
   build_tar_path = "/scratch/deployde330"
   ial_hash = "33d75b06b0bf09a01246d1e14ffae42334399af6"
 
@@ -34,11 +34,11 @@
   start = "-P{i}D"
 
 [modifs.submission]
-  bindir = "/scratch/@USER@/ial_binaries/33d75b06b0bf09a01246d1e14ffae42334399af6/@COMPILER@/R64/bin"
+  bindir = "/scratch/@USER@/ial_binaries/{ial_hash}/@COMPILER@/R64/bin"
   max_ecf_tasks = 25
 
 [modifs.submission.task_exceptions.Forecast]
-  bindir = "/scratch/@USER@/ial_binaries/33d75b06b0bf09a01246d1e14ffae42334399af6/@COMPILER@/@PRECISION@/bin"
+  bindir = "/scratch/@USER@/ial_binaries/{ial_hash}/@COMPILER@/@PRECISION@/bin"
 
 [modifs.system]
   # Picks up the case name and domain from the host run
