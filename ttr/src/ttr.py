@@ -29,7 +29,7 @@ class TestCases:
 
         if "include" in definitions:
             for include_config in definitions["include"].values():
-                with open(f"config_files/{include_config}", "rb") as f:
+                with open(include_config, "rb") as f:
                     defs = tomli.load(f)
                     for k, v in defs.items():
                         definitions[k] = v
@@ -224,7 +224,6 @@ class TestCases:
                 subtag,
                 base,
                 extra=extra,
-                host=host,
                 hostname=hostname,
                 hostdomain=hostdomain,
             )

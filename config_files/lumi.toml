@@ -1,13 +1,5 @@
 [general]
-  selection = ["alaro", "arome", "harmonie_arome"]
-  tag = "@USER@_v0_23_0_"
-
-# General config
-# selection is selection of cases to run
-# tag is the label added in front of each case
-# subtags allows to loop over additional settings, e.g. for compiler
-#
-
+  selection = ["alaro"]
 [include]
   cases = "config_files/case_definitions.toml"
   modifs = "config_files/modifs_lumi.toml"
