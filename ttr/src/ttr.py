@@ -4,10 +4,13 @@ import contextlib
 import copy
 import glob
 import os
+from pathlib import Path
 import subprocess
+import sys
 
 import tomli
 import tomlkit
+from deode.__main__ import main as deode_main
 from deode.config_parser import GeneralConstants
 from deode.general_utils import merge_dicts
 
@@ -258,7 +261,6 @@ class TestCases:
             base = case
 
         cmd = [
-            "deode",
             "case",
             f"?{GeneralConstants.PACKAGE_DIRECTORY}/data/config_files/configurations/{base}",
         ]
@@ -337,37 +339,17 @@ class TestCases:
             for c in cmds:
                 cmd.append(c)
             cmd_txt = " ".join(cmd)
-            print(f"Run:\n\n{cmd_txt}\n\n")
-            try:
-                result = subprocess.run(
-                    cmd,  # noqa S603
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    check=True,
-                )
-            except (subprocess.CalledProcessError, KeyError) as e:
-                print("Command failed!")
-                print(f"Return code: {result.returncode}")
-                print(f"stdout: {result.stdout}")
-                print(f"stderr: {result.stderr}")
-                raise RuntimeError(f"Error in \n\n{cmd_txt}\n\n") from e
+            print(f"Use cmd:\n\n{cmd_txt}\n\n")
+            deode_main(cmd)
 
-            print(result.stderr)
-            lines = result.stderr.split("INFO")
-            for line in lines:
-                if "Save config" in line:
-                    config_name = (
-                        line.split("\n")[0].split(" ")[-1].split("/")[-1].split(".")[0]
-                    )
-                    print("config_name:", config_name)
-                    config_file = f"{self.test_dir}/{config_name}.toml"
-                    with open(config_file, "rb") as f:
-                        definitions = tomli.load(f)
-                    cases[case] = {
-                        "config_name": config_name,
-                        "domain_name": definitions["domain"]["name"],
-                    }
+            directory = Path(self.test_dir)
+            config_file = max(directory.glob("*.toml"), key=lambda f: f.stat().st_mtime)
+            with open(config_file, "rb") as f:
+                definitions = tomli.load(f)
+            cases[case] = {
+                "config_name": os.path.basename(config_file.stem),
+                "domain_name": definitions["domain"]["name"],
+            }
 
         return cases
 
