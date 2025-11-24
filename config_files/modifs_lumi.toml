@@ -20,7 +20,7 @@
   start = "-P1D"
 
 [modifs.scheduler.ecfvars]
-  case_prefix = "@USER@_{tag}{subtag}"
+  case_prefix = "@USER@_@TAG@@SUBTAG@"
 
 [modifs.submission]
   max_ecf_tasks = 25
@@ -29,11 +29,14 @@
   MEM = "#SBATCH --mem=0GB"
   PARTITION = "#SBATCH --partition=standard"
 
+[modifs.submission.task_exceptions.PgdFilterTownFrac.ENV]
+  ECF_TRIES = 15
+
 [modifs.suite_control]
   do_archiving = false
   max_static_data_tasks = -1
 
 [modifs.system]
   # Picks up the case name and domain from the host run
-  host_case = "{hostname}"
-  host_domain = "{hostdomain}"
+  host_case = "@HOST_NAME@"
+  host_domain = "@HOST_DOMAIN@"

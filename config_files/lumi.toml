@@ -1,6 +1,14 @@
 [general]
-  selection = ["alaro"]
+  selection = [
+    "cy49t2_alaro",
+    "cy49t2_alaro_target",
+    "cy49t2_arome_dp",
+    "cy49t2_arome_target",
+    "cy49t2_harmonie_arome_dp",
+    "cy49t2_harmonie_arome_target",
+  ]
 
 [include]
   cases = "config_files/case_definitions.toml"
+  macros = "config_files/macros.toml"
   modifs = "config_files/modifs_lumi.toml"
