@@ -25,7 +25,7 @@ class TestCases:
             args (argsparse objectl): Command line arguments
 
         """
-        ConfigPaths.CONFIG_DATA_SEARCHPATHS.insert(0, os.path.join(os.getcwd()))
+        ConfigPaths.CONFIG_DATA_SEARCHPATHS.insert(0, os.path.join(os.getcwd(), "config_files"))
 
         definitions = {"general": {}, "modifs": {}}
         if args.config_file is not None:
